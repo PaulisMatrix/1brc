@@ -5,6 +5,6 @@ import (
 )
 
 func main() {
-	fmt.Println("generating 1million row csv file!")
+	fmt.Println("generating 1billion row csv file!")
 	generate()
 }

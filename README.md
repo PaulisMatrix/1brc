@@ -1,2 +1,4 @@
 # 1brc
-The One Billion Row Challenge
+
+My submissions(?) for the One Billion Row Challenge by Gunnar Morling: https://www.morling.dev/blog/one-billion-row-challenge/
+

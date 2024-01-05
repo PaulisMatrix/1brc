@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
+	"math"
 	"math/rand"
 	"os"
 	"strconv"
@@ -59,12 +60,11 @@ func generate() {
 
 	// get the whole list
 	constructList()
-	fmt.Println(len(stations))
 
 	source := rand.NewSource(time.Now().UnixNano())
 	rand := rand.New(source)
 
-	file, err := os.OpenFile("weather1gi.csv", os.O_APPEND|os.O_RDWR|os.O_CREATE, 0666)
+	file, err := os.OpenFile("../DONOTOPEN/weather1gi.csv", os.O_APPEND|os.O_RDWR|os.O_CREATE, 0666)
 	if err != nil {
 		panic(err)
 	}
@@ -77,33 +77,43 @@ func generate() {
 	headerBuf.WriteString(header)
 	file.Write(headerBuf.Bytes())
 
+	wrBuf := bufio.NewWriter(file)
+
 	for i := 0; i < size; i++ {
 
 		if i > 0 && (i%100_000_000 == 0) {
-			fmt.Printf("checkpoint: %d. fsyncing the buffer. Time till now: %.3fsecs\n", i, float64(time.Since(start))/float64(time.Second))
+			fmt.Printf("checkpoint: %d. flushing and fsyncing the buffer. Time till now: %.3fsecs\n", i, float64(time.Since(start))/float64(time.Second))
+
+			if err := wrBuf.Flush(); err != nil {
+				fmt.Println("error in flushing to io writer", err)
+			}
+
 			if err := file.Sync(); err != nil {
 				fmt.Println("error in fsyncing", err)
 			}
 		}
 
-		buf := new(bytes.Buffer)
-
 		pickStation := stations[rand.Intn(len(stations))]
-		newStation := fmt.Sprintf("%s,%.3f\n", pickStation.Station, pickStation.Temperature)
+		newStation := fmt.Sprintf("%s,%.3f\n", pickStation.Station, measurement(pickStation.Temperature))
 
 		// write to buf
-		_, err := buf.WriteString(newStation)
+		_, err := wrBuf.WriteString(newStation)
 		if err != nil {
 			fmt.Println("error in writing to the buffer", err)
 			continue
 		}
 
 		// write to file
-		_, err = file.Write(buf.Bytes())
-		if err != nil {
-			fmt.Println("error in writing to the file", err)
-			continue
-		}
+		//_, err = file.Write(buf.Bytes())
+		//if err != nil {
+		//	fmt.Println("error in writing to the file", err)
+		//	continue
+		//}
+	}
+
+	// final flush
+	if err := wrBuf.Flush(); err != nil {
+		fmt.Println("error in flushing to io writer", err)
 	}
 
 	// final fsync
@@ -112,3 +122,20 @@ func generate() {
 	}
 
 }
+
+func measurement(meanTemperature float32) float32 {
+	m := rand.NormFloat64()*10 + float64(meanTemperature)
+	return float32(math.Round(m*10.0) / 10.0)
+}
+
+/*
+unbuffered writes:
+checkpoint: 100000000. fsyncing the buffer. Time till now: 255.106secs
+checkpoint: 200000000. fsyncing the buffer. Time till now: 503.731secs
+checkpoint: 300000000. fsyncing the buffer. Time till now: 744.789secs
+
+buffered writes: buffered write will automatically flush the buffer on reaching default size of 4KB and will empty the buffer for new writes.
+checkpoint: 100000000. flushing and fsyncing the buffer. Time till now: 26.980secs
+checkpoint: 200000000. flushing and fsyncing the buffer. Time till now: 53.791secs
+checkpoint: 300000000. flushing and fsyncing the buffer. Time till now: 80.649secs
+*/

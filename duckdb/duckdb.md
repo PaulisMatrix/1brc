@@ -1,7 +1,7 @@
 ## solving using duckdb
 
 
-1.  Import csv into duckdb table: `COPY weather FROM 'weather.csv' WITH (DELIMITER ',', HEADER true)`
+1.  Import csv into duckdb table: `COPY weather FROM 'weather.csv' WITH (DELIMITER ',', HEADER true);`
 
 2.  For checking query execution times, turn on timer: `.timer on` in seconds.
 

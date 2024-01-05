@@ -3,4 +3,4 @@ CREATE TABLE IF NOT EXISTS weather (station VARCHAR NOT NULL, temperature DOUBLE
 
 
 -- query to select max, min, avg of each station
-SELECT station, MIN(temperature), MAX(temperature), AVG(temperature) FROM weather GROUP BY station;
+SELECT station, ROUND(MIN(temperature),2), ROUND(MAX(temperature),2), ROUND(AVG(temperature),2) FROM weather GROUP BY station ORDER BY station;
