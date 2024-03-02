@@ -12,13 +12,13 @@ import (
 	"time"
 )
 
-const size = 1_000_000_000
+const size = 1_000_000
 
 var stations []WeatherStations
 
 type WeatherStations struct {
-	Station     string  `json:"station"`
-	Temperature float32 `json:"temperature"`
+	Station     string
+	Temperature float32
 }
 
 func constructList() {
@@ -64,7 +64,7 @@ func generate() {
 	source := rand.NewSource(time.Now().UnixNano())
 	rand := rand.New(source)
 
-	file, err := os.OpenFile("../DONOTOPEN/weather1gi.csv", os.O_APPEND|os.O_RDWR|os.O_CREATE, 0666)
+	file, err := os.OpenFile("../weather1mi.txt", os.O_APPEND|os.O_RDWR|os.O_CREATE, 0666)
 	if err != nil {
 		panic(err)
 	}
